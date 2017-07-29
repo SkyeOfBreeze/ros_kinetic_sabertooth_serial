@@ -10,7 +10,10 @@ Note! Currently unstable! Use at your own risk! As I finalize the structure, thi
 ## linux
 yes
 ## windows
-ros does not support windows
+### Ubuntu Bash
+yes
+### Windows 10 without bash
+Not tested. Some samples will only work on linux
 
 # Languages
 ## python 2.7 linux
