@@ -14,7 +14,7 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
+#  * Neither the name of Brendon Telman nor the names of its
 #    contributors may be used to endorse or promote products derived
 #    from this software without specific prior written permission.
 #
@@ -37,7 +37,7 @@
 
 import rospy, serial, Queue
 from std_msgs.msg import String
-from SabertoothDriver.msg import SabertoothMotor
+from SabertoothSerial.msg import SabertoothMotor
 class SerialMotorControl:
     #Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed. This cannot detect which one is the sabertooth
     ard = 0
@@ -49,13 +49,14 @@ class SerialMotorControl:
 
     def sendCommand(self, motor, power):
         if self.publishEnabled:
-            publish_raw(motor, power)
+            self.publish_raw(motor, power)
         else:
-            motor_raw_process(motor, power)
+            self.motor_raw_process(motor, power)
         
     def setPublishEvent(self, publish):
         self.publishEnabled = publish
         if publish:
+            rospy.init_node('motor_tester', anonymous=True)
             self.pub = rospy.Publisher('motor_control_drive', SabertoothMotor, queue_size=10)
         else:
             self.ard = serial.Serial('/dev/ttyUSB0', 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
@@ -81,20 +82,22 @@ class SerialMotorControl:
                 command = 191 - magnitude
             else:
                 command = 192 + magnitude
-      command = self.constrain(command, 1, 254);  
+      command = self.constrain(command, 1, 254);
+      return command
+      
     def motor_raw_process(self, motor, power):
       data = self.getByteOfMotor(motor, power)
       self.motor_raw(data)
       
     def motor_raw(self, data):
-      ard.write(data)
+      self.ard.write(chr(data))
       
     def driveBoth(self, leftPower, rightPower):
         self.sendCommand(0, leftPower)
         self.sendCommand(1, rightPower)
         
     def drive(self, power):
-        self.driveBoth(0, power, power)
+        self.driveBoth(power, power)
         
     def driveForward(self, power):
         self.drive(power)
@@ -108,7 +111,7 @@ class SerialMotorControl:
         self.driveBoth(power, -power)
         
     def stop(self):
-        self.ard.write(chr(0))
+        self.drive(0)
         
     def callback(self, data):
         self.queue.put(data)
@@ -133,10 +136,10 @@ class SerialMotorControl:
             while not rospy.is_shutdown():
                 while not self.queue.empty():
                     data = self.queue.get()
-                    self.motor_raw(data.motor, data.power)
+                    self.motor_raw_process(data.motor, data.power)
                     data = 0
-                else:
-                    self.stop()
+                #else:
+                    #self.stop()
             # spin() simply keeps python from exiting until this node is stopped
             rospy.spin()
         
