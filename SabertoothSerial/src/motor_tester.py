@@ -50,6 +50,7 @@ motors = SerialMotorControl()
 def init():
     if __name__ == '__main__':
         promptPublish()
+        motors.setSerialPort('/dev/ttyUSB0') #example of setting custom serial port. Defaults to /dev/ttyUSB0. Immediately switches to this if not publishing data, and will crash if port does not exist
         motors.stop()
         try:
             looper()

@@ -38,7 +38,10 @@
 import rospy, serial, Queue
 from std_msgs.msg import String
 from SabertoothSerial.msg import SabertoothMotor
+
 class SerialMotorControl:
+    serialPort = '/dev/ttyUSB0'
+    timeout = 0
     #Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed. This cannot detect which one is the sabertooth
     ard = 0
     publishEnabled = False
@@ -59,7 +62,12 @@ class SerialMotorControl:
             rospy.init_node('motor_tester', anonymous=True)
             self.pub = rospy.Publisher('motor_control_drive', SabertoothMotor, queue_size=10)
         else:
-            self.ard = serial.Serial('/dev/ttyUSB0', 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
+            self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
+        
+    def setSerialPort(self, port):
+        self.serialPort = port
+        if not self.publishEnabled:
+            self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
         
     def publish_raw(self, motor, power):
         data = SabertoothMotor(motor, power)
@@ -133,13 +141,17 @@ class SerialMotorControl:
 
             rospy.Subscriber('motor_control_drive', SabertoothMotor, self.callback)
             rospy.Subscriber('motor_control_drive_raw', String, self.raw_callback)
+            timeSinceLastMessage = rospy.get_time()
             while not rospy.is_shutdown():
                 while not self.queue.empty():
+                    timeSinceLastMessage = rospy.get_time()
                     data = self.queue.get()
                     self.motor_raw_process(data.motor, data.power)
                     data = 0
-                #else:
-                    #self.stop()
+                else:
+                    self.timeout = self.timeout + 1
+                    if rospy.get_time() - timeSinceLastMessage > 1:
+                        self.stop()
             # spin() simply keeps python from exiting until this node is stopped
             rospy.spin()
         
