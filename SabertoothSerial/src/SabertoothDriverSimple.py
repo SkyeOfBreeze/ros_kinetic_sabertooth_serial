@@ -169,8 +169,8 @@ class SerialMotorControl:
         # cmd_vel.angle is the angular z component and cmd_vel.speed the linear x component
         # https://answers.ros.org/question/209963/cmd_veltwist-transform-twist-message-into-left-and-right-motor-commands/?answer=209966#post-id-209966
         wheel_dist = 50.8  # cm
-        speed_wish_right = (msg.angle * wheel_dist) / 2 + msg.speed
-        speed_wish_left = msg.speed * 2 - speed_wish_right
+        speed_wish_right = (msg.angular.z * wheel_dist) / 2 + msg.linear.x
+        speed_wish_left = msg.linear.x * 2 - speed_wish_right
 
         # Then set your wheel speeds (using wheel_left and wheel_right as examples)
         self.drive_both_raw(speed_wish_left, speed_wish_right)
