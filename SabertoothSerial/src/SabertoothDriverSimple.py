@@ -71,8 +71,8 @@ class SerialMotorControl:
             W = (1 - abs(y)) * (x / 1) + x  # Calculate R-L
             R = (V + W) / 2  # Calculate R
             L = (V - W) / 2  # Calculate L
-            self.motor_raw_process(0, L)
-            self.motor_raw_process(1, R)
+            self.motor_raw_process(0, int(L*100))
+            self.motor_raw_process(1, int(R*100))
 
     # Internally set ROS publisher and use it. calling rosrun on this file will make it a subscriber for motors
     def set_publish_event(self, publish):
@@ -173,7 +173,7 @@ class SerialMotorControl:
         speed_wish_left = msg.linear.x * 2 - speed_wish_right
 
         # Then set your wheel speeds (using wheel_left and wheel_right as examples)
-        self.drive_both_raw(speed_wish_left, speed_wish_right)
+        self.drive_both_raw(int(speed_wish_left*100), int(speed_wish_right*100))
 
     def listener(self):
         # don't let this run unless it is a node. Better Idea; don't allow this to be a node
