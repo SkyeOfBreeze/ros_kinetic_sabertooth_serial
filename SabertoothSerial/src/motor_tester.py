@@ -138,8 +138,8 @@ def looper():
         elif key == 118:  # v
             constant_power = max(constant_power - 10, 0)
         else:
-            rospy.loginfo("stop motors %s", key)
-            motors.stop()
+            motors.y = 0
+            motors.x = 0
         motors.update()
         rate.sleep()
 init()
