@@ -33,10 +33,10 @@
 #
 # Revision $Id$
 
-## Simple motor tester demo for the Sabertooth Packetized Serial Mode
+# Simple motor tester demo for the SaberTooth Simple Serial Mode
 
 import rospy
-#import getch
+# import getch
 import sys
 import select
 import termios
@@ -47,10 +47,13 @@ from time import sleep
 
 motors = SerialMotorControl()
 
+
 def init():
     if __name__ == '__main__':
-        promptPublish()
-        motors.setSerialPort('/dev/ttyUSB0') #example of setting custom serial port. Defaults to /dev/ttyUSB0. Immediately switches to this if not publishing data, and will crash if port does not exist
+        prompt_publish()
+        # Program will crash if serial port not configured correctly. defaults to /dev/ttyUSB0
+        motors.set_serial_port(
+            '/dev/ttyUSB0')  # example of setting custom serial port. Defaults to /dev/ttyUSB0.
         motors.stop()
         try:
             looper()
@@ -58,14 +61,15 @@ def init():
             pass
         motors.stop()
 
-def promptPublish():
+
+def prompt_publish():
     key = raw_input('Publish to driver instead of direct access? Y/n')
     if key == 'Y':
-        motors.setPublishEvent(True)
+        motors.set_publish_event(True)
     else:
-        motors.setPublishEvent(False)
-    
-        
+        motors.set_publish_event(False)
+
+
 def getch():
     with raw_mode(sys.stdin):
         try:
@@ -75,74 +79,65 @@ def getch():
                 if key:
                     print('key')
                     return key
-                else: # an empty line means stdin has been closed
+                else:  # an empty line means stdin has been closed
                     print('eof')
             else:
                 print('return -1')
-                #return -1
+                # return -1
         except (KeyboardInterrupt, EOFError):
             print('KeyboardInterrupt')
             pass
+
+
 @contextlib.contextmanager
-def raw_mode(file):
-    old_attrs = termios.tcgetattr(file.fileno())
+def raw_mode(__file):
+    old_attrs = termios.tcgetattr(__file.fileno())
     new_attrs = old_attrs[:]
     new_attrs[3] = new_attrs[3] & ~(termios.ECHO | termios.ICANON)
     try:
-        termios.tcsetattr(file.fileno(), termios.TCSADRAIN, new_attrs)
+        termios.tcsetattr(__file.fileno(), termios.TCSADRAIN, new_attrs)
         yield
     finally:
-        termios.tcsetattr(file.fileno(), termios.TCSADRAIN, old_attrs)        
-        
+        termios.tcsetattr(__file.fileno(), termios.TCSADRAIN, old_attrs)
+
+
 def looper():
     pub = rospy.Publisher('motor_control_drive', SabertoothMotor, queue_size=10)
     rospy.init_node('motor_tester', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
-    constantPower = 25
+    rate = rospy.Rate(10)  # 10hz
+    constant_power = 25
     while not rospy.is_shutdown():
-        #key = ord(getch.kbhit())
+        # key = ord(getch.kbhit())
         key = 0
-        
-        #key = ord(sys.stdin.read(1))
+
+        # key = ord(sys.stdin.read(1))
         key = getch()
         if not key:
             key = 0
-        if key == 119: #w
-            motors.driveForward(constantPower)
+        if key == 119:  # w
+            motors.drive_forward(constant_power)
             rospy.loginfo("key %s pressed", key)
-        elif key == 115: #s
-            motors.driveBackward(constantPower)
+        elif key == 115:  # s
+            motors.drive_backward(constant_power)
             rospy.loginfo("key %s pressed", key)
-        elif key == 97: #a
-            motors.driveLeft(constantPower)
+        elif key == 97:  # a
+            motors.drive_left(constant_power)
             rospy.loginfo("key %s pressed", key)
-        elif key == 100: #d
-            motors.driveRight(constantPower)
+        elif key == 100:  # d
+            motors.drive_right(constant_power)
             rospy.loginfo("key %s pressed", key)
-        elif key == 101: #e, right
-            motors.driveBoth(constantPower,0)
+        elif key == 101:  # e, right
+            motors.drive_both(constant_power, 0)
             rospy.loginfo("key %s pressed", key)
-        elif key == 113: #q, left
-            motors.driveBoth(0, constantPower)
+        elif key == 113:  # q, left
+            motors.drive_both(0, constant_power)
             rospy.loginfo("key %s pressed", key)
-        elif key == 102: #f
-            constantPower = min(constantPower+10, 80)
-        elif key == 118: #v
-            constantPower = max(constantPower-10, 0)
+        elif key == 102:  # f
+            constant_power = min(constant_power + 10, 80)
+        elif key == 118:  # v
+            constant_power = max(constant_power - 10, 0)
         else:
             rospy.loginfo("stop motors %s", key)
             motors.stop()
         rate.sleep()
-        # data = SabertoothMotor()
-        # if direction == "up":
-            # data.motor = 1
-            # data.power = 100
-        # if direction == "down":
-            # data.motor = 1
-            # data.power = -100
-        # if direction == "":
-            # data.motor = 1
-            # data.power = 0
-        # rospy.loginfo("sending command")
-        # pub.publish(data)
 init()

@@ -33,11 +33,12 @@
 #
 # Revision $Id$
 
-## Packetized Serial Motor Driver for the Sabertooth Motor Drivers
+# Packetized Serial Motor Driver for the SaberTooth Motor Drivers
 
-import rospy, serial 
+import rospy, serial
 from std_msgs.msg import String
 from SabertoothSerial.msg import SabertoothMotor
+
 
 class Packet:
     addr = -1
@@ -47,37 +48,41 @@ class Packet:
 
     def create(self):
         self.checksum = self.addr + self.command + self.data & 0b01111111
-        
-    def toArray(self):
+
+    def to_array(self):
         return bytearray([self.addr, self.command, self.data, self.checksum])
 
-    def __init__(self,_addr, _command, _data):
+    def __init__(self, _addr, _command, _data):
         self.addr = _addr
         self.command = _command
         self.data = _data
         self.create()
 
-#Possible Motor Driver channels 0-7, please look at Sabertooth Motor Driver Documentation
+
+# Possible Motor Driver channels 0-7, please look at Sabertooth Motor Driver Documentation
 MOTOR_DRIVER_ADDRESS = [128, 129, 130, 131, 132, 133, 134, 135]
 
-#Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed. This cannot detect which one is the sabertooth
+# Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed.
+# This cannot detect which one is the SaberTooth
 ard = serial.Serial('/dev/ttyUSB0', 19200, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
 
-#required to call this after a 2 second delay from motor power on
+
+# required to call this after a 2 second delay from motor power on
 def start():
-    #send out this command to set the baud. Documentation says to wait 2 seconds before invoking this command. If the motor controller gets reset, this must be run again
-    ard.write(0xAA);
+    # send out this command to set the baud. Documentation says to wait 2 seconds before invoking this command.
+    # If the motor controller gets reset, this must be run again
+    ard.write(0xAA)
 
 
 def motor_raw(addr, motor, power):
-    command = -1;
+    command = -1
     if motor == 1:
         if power > 0:
             command = 0
         else:
             command = 1
     else:
-        if motor == 2:#
+        if motor == 2:  #
             if power > 0:
                 command = 4
             else:
@@ -85,14 +90,15 @@ def motor_raw(addr, motor, power):
         else:
             rospy.logerr("sabertooth_driver: Attempt to use a motor other than 1 or 2!")
             return False
-    data = Packet(_addr = addr, _command = command, _data = abs(power))
-    ard.write(data.toArray())
+    data = Packet(_addr=addr, _command=command, _data=abs(power))
+    ard.write(data.to_array())
     return True
-    
+
 
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.power)
     motor_raw(MOTOR_DRIVER_ADDRESS[0], data.motor, data.power)
+
 
 def listener():
     # In ROS, nodes are uniquely named. If two nodes with the same
@@ -107,7 +113,7 @@ def listener():
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
+
 if __name__ == '__main__':
     start()
     listener()
-    

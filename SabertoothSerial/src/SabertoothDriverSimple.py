@@ -33,104 +33,108 @@
 #
 # Revision $Id$
 
-## Packetized Serial Motor Driver for the Sabertooth Motor Drivers
+# Simple Serial Motor Driver for the SaberTooth Motor Drivers
 
 import rospy, serial, Queue
 from std_msgs.msg import String
 from SabertoothSerial.msg import SabertoothMotor
 
+
 class SerialMotorControl:
     serialPort = '/dev/ttyUSB0'
     timeout = 0
-    #Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed. This cannot detect which one is the sabertooth
+    # Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed.
+    # This cannot detect which one is the SaberTooth
     ard = 0
     publishEnabled = False
     pub = 0
     queue = Queue.Queue()
+
     def constrain(self, val, min_val, max_val):
         return min(max_val, max(min_val, val))
 
-    def sendCommand(self, motor, power):
+    def send_command(self, motor, power):
         if self.publishEnabled:
             self.publish_raw(motor, power)
         else:
             self.motor_raw_process(motor, power)
-        
-    def setPublishEvent(self, publish):
+
+    def set_publish_event(self, publish):
         self.publishEnabled = publish
         if publish:
             rospy.init_node('motor_tester', anonymous=True)
             self.pub = rospy.Publisher('motor_control_drive', SabertoothMotor, queue_size=10)
         else:
             self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
-        
-    def setSerialPort(self, port):
+
+    def set_serial_port(self, port):
         self.serialPort = port
         if not self.publishEnabled:
             self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
-        
+
     def publish_raw(self, motor, power):
         data = SabertoothMotor(motor, power)
         data.motor = motor
         data.power = power
         self.pub.publish(data)
-      
-    def getByteOfMotor(self, motor, power):
-      power = self.constrain(power, -127, 127);
-      magnitude = abs(power) >> 1;
-      command = 0
-      if motor == 0:
-        if power < 0:
-            command = 63 - magnitude
-        else:
-            command = 64 + magnitude
-      else:
-        if motor == 1:
+
+    def get_byte_of_motor(self, motor, power):
+        power = self.constrain(power, -127, 127);
+        magnitude = abs(power) >> 1;
+        command = 0
+        if motor == 0:
             if power < 0:
-                command = 191 - magnitude
+                command = 63 - magnitude
             else:
-                command = 192 + magnitude
-      command = self.constrain(command, 1, 254);
-      return command
-      
+                command = 64 + magnitude
+        else:
+            if motor == 1:
+                if power < 0:
+                    command = 191 - magnitude
+                else:
+                    command = 192 + magnitude
+        command = self.constrain(command, 1, 254);
+        return command
+
     def motor_raw_process(self, motor, power):
-      data = self.getByteOfMotor(motor, power)
-      self.motor_raw(data)
-      
+        data = self.get_byte_of_motor(motor, power)
+        self.motor_raw(data)
+
     def motor_raw(self, data):
-      self.ard.write(chr(data))
-      
-    def driveBoth(self, leftPower, rightPower):
-        self.sendCommand(0, leftPower)
-        self.sendCommand(1, rightPower)
-        
+        self.ard.write(chr(data))
+
+    def drive_both(self, left_power, right_power):
+        self.send_command(0, left_power)
+        self.send_command(1, right_power)
+
     def drive(self, power):
-        self.driveBoth(power, power)
-        
-    def driveForward(self, power):
+        self.drive_both(power, power)
+
+    def drive_forward(self, power):
         self.drive(power)
 
-    def driveBackward(self, power):
+    def drive_backward(self, power):
         self.drive(-power)
-    
-    def driveLeft(self, power):
-        self.driveBoth(-power, power)
-    def driveRight(self, power):
-        self.driveBoth(power, -power)
-        
+
+    def drive_left(self, power):
+        self.drive_both(-power, power)
+
+    def drive_right(self, power):
+        self.drive_both(power, -power)
+
     def stop(self):
         self.drive(0)
-        
+
     def callback(self, data):
         self.queue.put(data)
         rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.power)
-        
+
     def raw_callback(self, data):
         rospy.loginfo(rospy.get_caller_id() + 'I heard raw data')
         self.ard.write(str.decode(data))
 
     def listener(self):
-        #don't let this run unless it is a node. Better Idea; don't allow this to be a node
+        # don't let this run unless it is a node. Better Idea; don't allow this to be a node
         if __name__ == '__main__':
             # In ROS, nodes are uniquely named. If two nodes with the same
             # name are launched, the previous one is kicked off. The
@@ -141,26 +145,26 @@ class SerialMotorControl:
 
             rospy.Subscriber('motor_control_drive', SabertoothMotor, self.callback)
             rospy.Subscriber('motor_control_drive_raw', String, self.raw_callback)
-            timeSinceLastMessage = rospy.get_time()
+            time_since_last_message = rospy.get_time()
             while not rospy.is_shutdown():
                 while not self.queue.empty():
-                    timeSinceLastMessage = rospy.get_time()
+                    time_since_last_message = rospy.get_time()
                     data = self.queue.get()
                     self.motor_raw_process(data.motor, data.power)
                     data = 0
                 else:
                     self.timeout = self.timeout + 1
-                    if rospy.get_time() - timeSinceLastMessage > 1:
+                    if rospy.get_time() - time_since_last_message > 1:
                         self.stop()
             # spin() simply keeps python from exiting until this node is stopped
             rospy.spin()
-        
+
+
 if __name__ == '__main__':
     SerialControl = SerialMotorControl()
-    SerialControl.setPublishEvent(False)
+    SerialControl.set_publish_event(False)
     try:
         SerialControl.listener()
     except rospy.ROSInterruptException:
         pass
     SerialControl.stop()
-        
