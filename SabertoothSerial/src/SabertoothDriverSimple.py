@@ -88,7 +88,7 @@ class SerialMotorControl:
         if not self.publishEnabled:
             self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
 
-    def publish_raw(self, y, x):
+    def publish_raw(self, x, y):
         twist = Twist()
         twist.linear.x = (1 - y) * (self.x_max - self.x_min) + self.x_min
         twist.linear.y = 0
