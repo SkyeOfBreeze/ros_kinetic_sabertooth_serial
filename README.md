@@ -20,7 +20,7 @@ Not tested. Some samples will only work on linux
 this is the language of all the source files so far. What may make more sense for future revisions is to make a python only motor controller libary, but for now, it is bundled in the ros package
 
 ## c++
-Will be added at a later date
+TODO
 
 # Compatible Sabertooth controllers
 More or all that support serial may be compatible, but the list below shows what they are tested on. Feel free to notify me of other working devices
