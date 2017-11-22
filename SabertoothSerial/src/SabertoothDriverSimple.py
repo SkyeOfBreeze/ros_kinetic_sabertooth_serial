@@ -36,6 +36,7 @@
 # Simple Serial Motor Driver for the SaberTooth Motor Drivers
 # Version 1
 
+# TODO rip out subscribe code to Twist and make it control motor with a submodule to my other repo
 import rospy, serial, Queue
 from std_msgs.msg import String
 from SabertoothSerial.msg import SabertoothMotor
