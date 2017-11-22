@@ -102,8 +102,7 @@ def raw_mode(__file):
 
 
 def looper():
-    pub = rospy.Publisher('motor_control_drive', SabertoothMotor, queue_size=10)
-    rospy.init_node('motor_tester', anonymous=True)
+    rospy.init_node('motor_tester_debug', anonymous=True)
     rate = rospy.Rate(10)  # 10hz
     constant_power = 25
     while not rospy.is_shutdown():
@@ -115,22 +114,24 @@ def looper():
         if not key:
             key = 0
         if key == 119:  # w
-            motors.drive_forward(constant_power)
+            motors.y = 1
             rospy.loginfo("key %s pressed", key)
         elif key == 115:  # s
-            motors.drive_backward(constant_power)
+            motors.y = -1
             rospy.loginfo("key %s pressed", key)
         elif key == 97:  # a
-            motors.drive_left(constant_power)
+            motors.x = -1
             rospy.loginfo("key %s pressed", key)
         elif key == 100:  # d
-            motors.drive_right(constant_power)
+            motors.x = 1
             rospy.loginfo("key %s pressed", key)
         elif key == 101:  # e, right
-            motors.drive_both(constant_power, 0)
+            motors.y = 1
+            motors.x = 1
             rospy.loginfo("key %s pressed", key)
         elif key == 113:  # q, left
-            motors.drive_both(0, constant_power)
+            motors.y = 1
+            motors.x = -1
             rospy.loginfo("key %s pressed", key)
         elif key == 102:  # f
             constant_power = min(constant_power + 10, 80)
@@ -139,5 +140,6 @@ def looper():
         else:
             rospy.loginfo("stop motors %s", key)
             motors.stop()
+        motors.update()
         rate.sleep()
 init()

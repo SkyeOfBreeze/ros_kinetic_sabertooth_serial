@@ -55,6 +55,8 @@ class SerialMotorControl:
     x_max = 1
     r_min = 1
     r_max = 1
+    x = 0
+    y = 0
 
     def constrain(self, val, min_val, max_val):
         return min(max_val, max(min_val, val))
@@ -129,6 +131,7 @@ class SerialMotorControl:
         self.ard.write(chr(data))
 
     def drive_both(self, x, y):
+        # idk how to convert to x and y
         self.send_command(x, y)
 
     def drive_both_raw(self, left, right):
@@ -195,6 +198,9 @@ class SerialMotorControl:
                         self.stop()
             # spin() simply keeps python from exiting until this node is stopped
             rospy.spin()
+
+    def update(self):
+        self.drive_both(self.x, self.y)
 
 
 if __name__ == '__main__':
