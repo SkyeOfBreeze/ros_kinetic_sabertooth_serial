@@ -52,9 +52,9 @@ class SerialMotorControl:
     publishEnabled = False
     pub = 0
     queue = Queue.Queue()
-    x_min = 1
+    x_min = 0
     x_max = 1
-    r_min = 1
+    r_min = 0
     r_max = 1
     x = 0
     y = 0
