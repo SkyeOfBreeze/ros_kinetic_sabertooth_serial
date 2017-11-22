@@ -105,6 +105,9 @@ class SerialMotorControl:
             twist.angular.z = self.r_max
         if twist.angular.z < self.r_min:
             twist.angular.z = self.r_min
+        rospy.loginfo("Sending a /cmd_vel message!")
+        rospy.loginfo("Linear Components: [%f, %f, %f]" % (twist.linear.x, twist.linear.y, twist.linear.z))
+        rospy.loginfo("Angular Components: [%f, %f, %f]" % (twist.angular.x, twist.angular.y, twist.angular.z))
         self.pub.publish(twist)
 
     def get_byte_of_motor(self, motor, power):
