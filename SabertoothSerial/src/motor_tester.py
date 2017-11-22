@@ -102,7 +102,7 @@ def raw_mode(__file):
 
 
 def looper():
-    rospy.init_node('motor_tester_debug', anonymous=True)
+    # rospy.init_node('motor_tester_debug', anonymous=True)
     rate = rospy.Rate(10)  # 10hz
     constant_power = 25
     while not rospy.is_shutdown():

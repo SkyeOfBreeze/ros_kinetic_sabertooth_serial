@@ -34,6 +34,7 @@
 # Revision $Id$
 
 # Simple Serial Motor Driver for the SaberTooth Motor Drivers
+# Version 1
 
 import rospy, serial, Queue
 from std_msgs.msg import String
@@ -73,6 +74,7 @@ class SerialMotorControl:
             self.motor_raw_process(0, L)
             self.motor_raw_process(1, R)
 
+    # Internally set ROS publisher and use it. calling rosrun on this file will make it a subscriber for motors
     def set_publish_event(self, publish):
         self.publishEnabled = publish
         if publish:
@@ -87,23 +89,23 @@ class SerialMotorControl:
             self.ard = serial.Serial(self.serialPort, 9600, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE)
 
     def publish_raw(self, y, x):
-       twist = Twist()
-       twist.linear.x = (1 - y) * (self.x_max - self.x_min) + self.x_min
-       twist.linear.y = 0
-       twist.linear.z = 0
-       twist.angular.x = 0
-       twist.angular.y = 0
-       twist.angular.z = (1 - x) * (self.r_max - self.r_min) + self.r_min
+        twist = Twist()
+        twist.linear.x = (1 - y) * (self.x_max - self.x_min) + self.x_min
+        twist.linear.y = 0
+        twist.linear.z = 0
+        twist.angular.x = 0
+        twist.angular.y = 0
+        twist.angular.z = (1 - x) * (self.r_max - self.r_min) + self.r_min
 
-       if twist.linear.x > self.x_max:
+        if twist.linear.x > self.x_max:
             twist.linear.x = self.x_max
-       if twist.linear.x < self.x_min:
+        if twist.linear.x < self.x_min:
             twist.linear.x = self.x_min
-       if twist.angular.z > self.r_max:
+        if twist.angular.z > self.r_max:
             twist.angular.z = self.r_max
-       if twist.angular.z < self.r_min:
+        if twist.angular.z < self.r_min:
             twist.angular.z = self.r_min
-       self.pub.publish(twist)
+        self.pub.publish(twist)
 
     def get_byte_of_motor(self, motor, power):
         power = self.constrain(power, -127, 127);
