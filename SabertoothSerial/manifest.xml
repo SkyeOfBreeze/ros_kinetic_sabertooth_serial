@@ -1,7 +1,7 @@
 <package>
-  <description brief="SabertoothSerial">
+  <description brief="SabertoothSerialROS">
 
-     SynRen Sabertooth Serial Driver for the Robot Operationg System (ROS)
+     SynRen Sabertooth Serial Driver for the Robot Operating System (ROS)
 
   </description>
   <author>Brendon Telman</author>
@@ -11,6 +11,7 @@
   <depend package="std_msgs"/>
   <depend package="roscpp"/>
   <depend package="rospy"/>
+  <depend package="SabertoothSerial"/>
   <depend package="rosserial_client"/>
   <depend package="geometry_msgs"/>
 </package>
