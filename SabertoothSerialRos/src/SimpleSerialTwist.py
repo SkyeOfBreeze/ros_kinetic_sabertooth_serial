@@ -40,7 +40,7 @@ from geometry_msgs.msg import Twist
 from SabertoothSerial.SabertoothDriverSimple import SerialMotorControl
 
 
-class SabertoothSimpleSerialTwist:
+class SimpleSerialTwist:
     motors = SerialMotorControl('/dev/ttyUSB0')
 
     def __init__(self):
@@ -88,7 +88,7 @@ class SabertoothSimpleSerialTwist:
             # anonymous=True flag means that rospy will choose a unique
             # name for our 'listener' node so that multiple listeners can
             # run simultaneously.
-            rospy.init_node('cmd_vel_drive_train_listener', anonymous=True)
+            rospy.init_node('SimpleSerialTwist', anonymous=True)
             rospy.Subscriber("/cmd_vel", Twist, self.twist)
             time_since_last_message = rospy.get_time()
             while not rospy.is_shutdown():
@@ -105,7 +105,7 @@ class SabertoothSimpleSerialTwist:
 
 
 if __name__ == '__main__':
-    SerialTwist = SabertoothSimpleSerialTwist()
+    SerialTwist = SimpleSerialTwist()
     try:
         SerialTwist.listener()
     except rospy.ROSInterruptException:
