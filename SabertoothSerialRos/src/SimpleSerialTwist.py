@@ -35,24 +35,19 @@
 
 # Simple Serial Motor Driver for the SaberTooth Motor Drivers
 # Version 1
-import rospy, Queue
-from geometry_msgs.msg import Twist
+import Queue
+import rospy
 from SabertoothSerial.SabertoothDriverSimple import SerialMotorControl
+from geometry_msgs.msg import Twist
 
 
 class SimpleSerialTwist:
     motors = SerialMotorControl('/dev/ttyUSB0')
     time_since_last_message = 0
 
-    def __init__(self):
-
-        pass
-
     timeout = 0
     # Setup usb serial communication. If you have multiple usb serial devices, this may need to be changed.
     # This cannot detect which one is the SaberTooth
-    pub = 0
-    queue = Queue.Queue()
     x_min = 0
     x_max = 1
     r_min = 0
@@ -61,10 +56,6 @@ class SimpleSerialTwist:
     y = 0
     speed_wish_right = 0
     speed_wish_left = 0
-
-    @staticmethod
-    def constrain(val, min_val, max_val):
-        return min(max_val, max(min_val, val))
 
     def twist(self, msg):
         rospy.loginfo("Received a /cmd_vel message!")
@@ -89,7 +80,6 @@ class SimpleSerialTwist:
         # run simultaneously.
         rospy.loginfo("init_node SimpleSerialTwist")
         rospy.loginfo("Subscriber=cmd_vel")
-        rospy.init_node('SimpleSerialTwist', anonymous=True)
         rospy.Subscriber("cmd_vel", Twist, self.twist)
         time_since_last_message = rospy.get_time()
         while not rospy.is_shutdown():
@@ -100,6 +90,7 @@ class SimpleSerialTwist:
 
 
 if __name__ == '__main__':
+    rospy.init_node('SimpleSerialTwist', anonymous=True)
     rospy.loginfo("start program")
     SerialTwist = SimpleSerialTwist()
     rospy.loginfo("init SimpleSerialTwist")
