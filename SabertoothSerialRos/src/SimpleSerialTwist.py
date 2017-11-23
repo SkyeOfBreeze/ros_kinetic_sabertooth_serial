@@ -81,9 +81,9 @@ class SimpleSerialTwist:
         rospy.loginfo("init_node SimpleSerialTwist")
         rospy.loginfo("Subscriber=cmd_vel")
         rospy.Subscriber("cmd_vel", Twist, self.twist)
-        time_since_last_message = rospy.get_time()
+        self.time_since_last_message = rospy.get_time()
         while not rospy.is_shutdown():
-            if rospy.get_time() - time_since_last_message > 1:  # Timeout checking
+            if rospy.get_time() - self.time_since_last_message > 1:  # Timeout checking
                 self.motors.stop()
         # spin() simply keeps python from exiting until this node is stopped
         rospy.spin()
