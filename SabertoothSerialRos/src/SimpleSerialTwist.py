@@ -42,6 +42,7 @@ from SabertoothSerial.SabertoothDriverSimple import SerialMotorControl
 
 class SimpleSerialTwist:
     motors = SerialMotorControl('/dev/ttyUSB0')
+    time_since_last_message = 0
 
     def __init__(self):
 
@@ -58,6 +59,8 @@ class SimpleSerialTwist:
     r_max = 1
     x = 0
     y = 0
+    speed_wish_right = 0
+    speed_wish_left = 0
 
     @staticmethod
     def constrain(val, min_val, max_val):
@@ -67,47 +70,43 @@ class SimpleSerialTwist:
         rospy.loginfo("Received a /cmd_vel message!")
         rospy.loginfo("Linear Components: [%f, %f, %f]" % (msg.linear.x, msg.linear.y, msg.linear.z))
         rospy.loginfo("Angular Components: [%f, %f, %f]" % (msg.angular.x, msg.angular.y, msg.angular.z))
-
+        self.time_since_last_message = rospy.get_time()
         # Do velocity processing here:
         # Use the kinematics of your robot to map linear and angular velocities into motor commands
 
         # cmd_vel.angle is the angular z component and cmd_vel.speed the linear x component
         # https://answers.ros.org/question/209963/cmd_veltwist-transform-twist-message-into-left-and-right-motor-commands/?answer=209966#post-id-209966
         wheel_dist = 50.8  # cm
-        speed_wish_right = (msg.angular.z * wheel_dist) / 2 + msg.linear.x
-        speed_wish_left = msg.linear.x * 2 - speed_wish_right
-
-        # Then set your wheel speeds (using wheel_left and wheel_right as examples)
-        self.motors.drive_both(int(speed_wish_left * 100), int(speed_wish_right * 100))
+        self.speed_wish_right = (msg.angular.z * wheel_dist) / 2 + msg.linear.x
+        self.speed_wish_left = msg.linear.x * 2 - self.speed_wish_right
+        self.motors.drive_both(int(self.speed_wish_left * 100), int(self.speed_wish_right * 100))
 
     def listener(self):
-        # don't let this run unless it is a node. Better Idea; don't allow this to be a node
-        if __name__ == '__main__':
-            # In ROS, nodes are uniquely named. If two nodes with the same
-            # name are launched, the previous one is kicked off. The
-            # anonymous=True flag means that rospy will choose a unique
-            # name for our 'listener' node so that multiple listeners can
-            # run simultaneously.
-            rospy.init_node('SimpleSerialTwist', anonymous=True)
-            rospy.Subscriber("/cmd_vel", Twist, self.twist)
-            time_since_last_message = rospy.get_time()
-            while not rospy.is_shutdown():
-                while not self.queue.empty():
-                    time_since_last_message = rospy.get_time()
-                    cmd_vel = self.queue.get()
-                    self.twist(cmd_vel)
-                else:
-                    self.timeout = self.timeout + 1
-                    if rospy.get_time() - time_since_last_message > 1:
-                        self.motors.stop()
-            # spin() simply keeps python from exiting until this node is stopped
-            rospy.spin()
+        # In ROS, nodes are uniquely named. If two nodes with the same
+        # name are launched, the previous one is kicked off. The
+        # anonymous=True flag means that rospy will choose a unique
+        # name for our 'listener' node so that multiple listeners can
+        # run simultaneously.
+        rospy.loginfo("init_node SimpleSerialTwist")
+        rospy.loginfo("Subscriber=cmd_vel")
+        rospy.init_node('SimpleSerialTwist', anonymous=True)
+        rospy.Subscriber("cmd_vel", Twist, self.twist)
+        time_since_last_message = rospy.get_time()
+        while not rospy.is_shutdown():
+            if rospy.get_time() - time_since_last_message > 1:  # Timeout checking
+                self.motors.stop()
+        # spin() simply keeps python from exiting until this node is stopped
+        rospy.spin()
 
 
 if __name__ == '__main__':
+    rospy.loginfo("start program")
     SerialTwist = SimpleSerialTwist()
+    rospy.loginfo("init SimpleSerialTwist")
     try:
+        rospy.loginfo("listen")
         SerialTwist.listener()
     except rospy.ROSInterruptException:
         pass
+    rospy.loginfo("end of program")
     SerialTwist.motors.stop()
