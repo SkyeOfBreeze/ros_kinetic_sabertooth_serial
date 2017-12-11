@@ -3,6 +3,9 @@ Ros Library/Node to communicate with a Sabertooth Motor Controller via RS-232 Se
 
 Documentation in the beginning may be lacking, but will get better over time. This currently has a somewhat working simple serial running at 9600 on /dev/ttyUSB0, that can be either a listener node or be used via a different node as a dependency. Packetized serial does not work at the moment
 
+Support for geometry_msgs twist.
+Note: Currently not working right. Unit test needs to be written to test against.
+
 
 Note! Currently unstable! Use at your own risk! As I finalize the structure, things may break, or not work at all when you check it out
 
